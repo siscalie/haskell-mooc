@@ -4,6 +4,10 @@ module Set4b where
 
 import Mooc.Todo
 
+-- Sophie Lama
+-- University of Notre Dame
+-- Class of 2026
+
 ------------------------------------------------------------------------------
 -- Ex 1: countNothings with a fold. The function countNothings from
 -- the course material can be implemented using foldr. Your task is to

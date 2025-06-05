@@ -21,6 +21,9 @@
 --
 -- The tests will check that you haven't added imports :)
 
+-- Sophie Lama
+-- Lecture 3 Exercise Set B
+
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Set3b where
@@ -39,7 +42,12 @@ import Mooc.Todo
 --   buildList 7 0 3 ==> [3]
 
 buildList :: Int -> Int -> Int -> [Int]
-buildList start count end = todo
+buildList start count end = append end (buildListHelper start count [])
+    where append y [] = [y]
+          append y (x: xs) = x : append y xs
+          buildListHelper :: Int -> Int -> [Int] -> [Int]
+          buildListHelper start 0 ret = ret
+          buildListHelper start count ret = buildListHelper start (count - 1) (append start ret)
 
 ------------------------------------------------------------------------------
 -- Ex 2: given i, build the list of sums [1, 1+2, 1+2+3, .., 1+2+..+i]

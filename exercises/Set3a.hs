@@ -13,8 +13,11 @@ import Data.Char
 import Data.Either
 import Data.List
 
+-- Sophie Lama
+-- Set 3a Haskell Exercises
+
 ------------------------------------------------------------------------------
--- Ex 1: implement the function maxBy that takes as argument a
+-- Ex 1: implement the function maxBy that takes as arguments a
 -- measuring function (of type a -> Int) and two values (of type a).
 --
 -- maxBy should apply the measuring function to both arguments and
@@ -28,7 +31,7 @@ import Data.List
 --  maxBy head   [1,2,3] [4,5]  ==>  [4,5]
 
 maxBy :: (a -> Int) -> a -> a -> a
-maxBy measure a b = todo
+maxBy measure x1 x2 = if measure x1 > measure x2 then x1 else x2
 
 ------------------------------------------------------------------------------
 -- Ex 2: implement the function mapMaybe that takes a function and a
@@ -40,7 +43,8 @@ maxBy measure a b = todo
 --   mapMaybe length (Just "abc") ==> Just 3
 
 mapMaybe :: (a -> b) -> Maybe a -> Maybe b
-mapMaybe f x = todo
+mapMaybe f Nothing = Nothing
+mapMaybe f (Just x) = Just (f x)
 
 ------------------------------------------------------------------------------
 -- Ex 3: implement the function mapMaybe2 that works like mapMaybe
@@ -54,7 +58,9 @@ mapMaybe f x = todo
 --   mapMaybe2 div (Just 6) Nothing   ==>  Nothing
 
 mapMaybe2 :: (a -> b -> c) -> Maybe a -> Maybe b -> Maybe c
-mapMaybe2 f x y = todo
+mapMaybe2 f _ Nothing = Nothing
+mapMaybe2 f Nothing _ = Nothing
+mapMaybe2 f (Just x) (Just y) = Just (f x y)
 
 ------------------------------------------------------------------------------
 -- Ex 4: define the functions firstHalf and palindrome so that
@@ -76,9 +82,12 @@ mapMaybe2 f x y = todo
 palindromeHalfs :: [String] -> [String]
 palindromeHalfs xs = map firstHalf (filter palindrome xs)
 
-firstHalf = todo
+firstHalf :: String -> String
+firstHalf xs = if even (length xs) then take (div (length xs) 2) xs
+               else take (div (length xs) 2 + 1) xs -- include the middle char if odd length!
 
-palindrome = todo
+palindrome :: String -> Bool
+palindrome xs = xs == reverse xs -- will return True if xs is the same as its reverse
 
 ------------------------------------------------------------------------------
 -- Ex 5: Implement a function capitalize that takes in a string and
@@ -96,7 +105,10 @@ palindrome = todo
 --   capitalize "goodbye cruel world" ==> "Goodbye Cruel World"
 
 capitalize :: String -> String
-capitalize = todo
+capitalize xs = unwords (map capitalizeFirst (words xs))
+
+capitalizeFirst :: String -> String
+capitalizeFirst xs = toUpper (head xs) : tail xs -- only capitalize first char
 
 ------------------------------------------------------------------------------
 -- Ex 6: powers k max should return all the powers of k that are less
@@ -113,7 +125,7 @@ capitalize = todo
 --   * the function takeWhile
 
 powers :: Int -> Int -> [Int]
-powers k max = todo
+powers k max = takeWhile (<= max) [ k^i | i <- [0 .. max] ] -- creates list of values of k^i for i from 0 to max
 
 ------------------------------------------------------------------------------
 -- Ex 7: implement a functional while loop. While should be a function
@@ -136,7 +148,8 @@ powers k max = todo
 --     ==> Avvt
 
 while :: (a->Bool) -> (a->a) -> a -> a
-while check update value = todo
+while check update value = if check value then while check update (update value) -- iterate thru loop (aka recurse) with an updated version of value
+                           else value -- return the first val that doesn't pass the check
 
 ------------------------------------------------------------------------------
 -- Ex 8: another version of a while loop. This time, the check
@@ -156,7 +169,9 @@ while check update value = todo
 -- Hint! Remember the case-of expression from lecture 2.
 
 whileRight :: (a -> Either b a) -> a -> b
-whileRight check x = todo
+whileRight check x = whileHelper (check x) -- call check x
+    where whileHelper (Left i) = i -- if result is Left, return the contents of the Left
+          whileHelper (Right i) = whileRight check i -- if result is Right, recurse with the contents of the Right
 
 -- for the whileRight examples:
 -- step k x doubles x if it's less than k
@@ -180,7 +195,10 @@ bomb x = Right (x-1)
 -- Hint! This is a great use for list comprehensions
 
 joinToLength :: Int -> [String] -> [String]
-joinToLength = todo
+joinToLength len strs = [ cat | str1 <- strs, -- create list comprehension of catenations
+    str2 <- strs,
+    let cat = str1++str2, -- catenate two input strings
+    length cat == len] -- only return strings that are of length len
 
 ------------------------------------------------------------------------------
 -- Ex 10: implement the operator +|+ that returns a list with the first
@@ -193,7 +211,11 @@ joinToLength = todo
 --   [1,2,3] +|+ [4,5,6]  ==> [1,4]
 --   [] +|+ [True]        ==> [True]
 --   [] +|+ []            ==> []
-
+(+|+) :: [a] -> [a] -> [a]
+(+|+) [] [] = []
+(+|+) xs [] = [head xs]
+(+|+) [] ys = [head ys]
+(+|+) xs ys = head xs:[head ys]
 
 ------------------------------------------------------------------------------
 -- Ex 11: remember the lectureParticipants example from Lecture 2? We
@@ -210,7 +232,10 @@ joinToLength = todo
 --   sumRights [Left "bad!", Left "missing"]         ==>  0
 
 sumRights :: [Either a Int] -> Int
-sumRights = todo
+sumRights lec_arr = sumRHelper lec_arr 0
+    where sumRHelper [] sum = sum -- base case, when we're done with the array
+          sumRHelper ((Left x):xs) sum = sumRHelper xs sum -- aka ignore the array head if it's a Left
+          sumRHelper ((Right x):xs) sum = sumRHelper xs sum+x -- add array head to the sum if it's a Right
 
 ------------------------------------------------------------------------------
 -- Ex 12: recall the binary function composition operation
@@ -226,7 +251,10 @@ sumRights = todo
 --   multiCompose [(3*), (2^), (+1)] 0 ==> 6
 --   multiCompose [(+1), (2^), (3*)] 0 ==> 2
 
-multiCompose fs = todo
+multiCompose :: [a -> a] -> a -> a
+multiCompose [] x = x -- return x once the function list is empty!
+multiCompose fs x = multiCompose (init fs) (last fs x)
+-- init returns everything BUT the last element, last returns ONLY the lest element
 
 ------------------------------------------------------------------------------
 -- Ex 13: let's consider another way to compose multiple functions. Given
@@ -247,7 +275,18 @@ multiCompose fs = todo
 --   multiApp id [head, (!!2), last] "axbxc" ==> ['a','b','c'] i.e. "abc"
 --   multiApp sum [head, (!!2), last] [1,9,2,9,3] ==> 6
 
-multiApp = todo
+{-
+multiApp :: ([a] -> a) -> [a -> a] -> a -> a
+multiApp f gs x = f (multiAppHelper gs x [])
+    where multiAppHelper :: [a -> a] -> a -> [a] -> [a]
+          multiAppHelper [] x soln = soln
+          multiAppHelper (g:g_rest) x soln = multiAppHelper g_rest x (append (g x) soln)
+            where append y [] = [y]
+                  append y (x: xs) = x : append y xs
+-- like if gs = [(1+), (^3), (+2)] and x = 1, it'll give us [2, 1, 3] as the list of results
+-}
+multiApp :: ([a] -> a) -> [a -> a] -> a -> a
+multiApp f gs x = todo
 
 ------------------------------------------------------------------------------
 -- Ex 14: in this exercise you get to implement an interpreter for a

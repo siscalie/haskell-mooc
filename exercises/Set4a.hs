@@ -22,6 +22,10 @@ import Data.Ord
 import qualified Data.Map as Map
 import Data.Array
 
+-- Sophie Lama
+-- University of Notre Dame
+-- Class of 2026
+
 ------------------------------------------------------------------------------
 -- Ex 1: implement the function allEqual which returns True if all
 -- values in the list are equal.
@@ -35,7 +39,9 @@ import Data.Array
 -- you remove the Eq a => constraint from the type!
 
 allEqual :: Eq a => [a] -> Bool
-allEqual xs = todo
+allEqual [] = True
+allEqual [x] = True
+allEqual (x:y:xs) = x == y && allEqual (y:xs)
 
 ------------------------------------------------------------------------------
 -- Ex 2: implement the function distinct which returns True if all
@@ -50,7 +56,10 @@ allEqual xs = todo
 --   distinct [1,2] ==> True
 
 distinct :: Eq a => [a] -> Bool
-distinct = todo
+distinct [] = True
+distinct [x] = True
+-- nub eliminates duplicates, so if xs == nub xs then all values are distinct!
+distinct xs = nub xs == xs
 
 ------------------------------------------------------------------------------
 -- Ex 3: implement the function middle that returns the middle value
@@ -63,7 +72,9 @@ distinct = todo
 --   middle 'b' 'a' 'c'  ==> 'b'
 --   middle 1 7 3        ==> 3
 
-middle = todo
+middle :: Ord a => a -> a -> a -> a
+-- aka obtain item at index 1 of the sorted list of [x, y, z]
+middle x y z = sort (x:y:[z]) !! 1
 
 ------------------------------------------------------------------------------
 -- Ex 4: return the range of an input list, that is, the difference
@@ -78,8 +89,8 @@ middle = todo
 --   rangeOf [4,2,1,3]          ==> 3
 --   rangeOf [1.5,1.0,1.1,1.2]  ==> 0.5
 
-rangeOf :: [a] -> a
-rangeOf = todo
+rangeOf :: (Num a, Ord a) => [a] -> a
+rangeOf list = maximum list - minimum list
 
 ------------------------------------------------------------------------------
 -- Ex 5: given a (non-empty) list of (non-empty) lists, return the longest
@@ -113,8 +124,11 @@ longest = todo
 --   incrementKey True [(True,1),(False,3),(True,4)] ==> [(True,2),(False,3),(True,5)]
 --   incrementKey 'a' [('a',3.4)] ==> [('a',4.4)]
 
-incrementKey :: k -> [(k,v)] -> [(k,v)]
-incrementKey = todo
+incrementKey :: (Eq k, Num v) => k -> [(k,v)] -> [(k,v)]
+incrementKey key [] = []
+incrementKey key ((curr_k, curr_v):rest) =
+    if key == curr_k then (curr_k, curr_v+1):incrementKey key rest
+    else (curr_k, curr_v):incrementKey key rest
 
 ------------------------------------------------------------------------------
 -- Ex 7: compute the average of a list of values of the Fractional
