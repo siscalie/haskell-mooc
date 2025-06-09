@@ -8,6 +8,10 @@ import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Monoid
 import Data.Semigroup
 
+-- Sophie Lama
+-- University of Notre Dame
+-- Class of 2026
+
 ------------------------------------------------------------------------------
 -- Ex 1: you'll find below the types Time, Distance and Velocity,
 -- which represent time, distance and velocity in seconds, meters and
@@ -26,11 +30,11 @@ data Velocity = Velocity Double
 
 -- velocity computes a velocity given a distance and a time
 velocity :: Distance -> Time -> Velocity
-velocity = todo
+velocity (Distance d) (Time t) = Velocity (d/t)
 
 -- travel computes a distance given a velocity and a time
 travel :: Velocity -> Time -> Distance
-travel = todo
+travel (Velocity v) (Time t) = Distance (v*t)
 
 ------------------------------------------------------------------------------
 -- Ex 2: let's implement a simple Set datatype. A Set is a list of
@@ -45,19 +49,25 @@ travel = todo
 --   add 1 (add 1 emptySet)  ==>  Set [1]
 
 data Set a = Set [a]
-  deriving (Show,Eq)
+  deriving (Show, Eq)
 
 -- emptySet is a set with no elements
-emptySet :: Set a
-emptySet = todo
+emptySet :: Eq a => Set a
+emptySet = Set []
 
 -- member tests if an element is in a set
 member :: Eq a => a -> Set a -> Bool
-member = todo
+member elem (Set []) = False
+member elem (Set (s:rest)) = (elem == s) || member elem (Set rest)
 
 -- add a member to a set
-add :: a -> Set a -> Set a
-add = todo
+add :: (Eq a, Ord a) => a -> Set a -> Set a
+add elem s
+  | s == emptySet = Set [elem]
+  | member elem s = s
+  | otherwise = let Set (init:rest) = s in
+    if elem < init then Set (elem:init:rest)
+    else let Set new = add elem (Set rest) in Set (init:new)
 
 ------------------------------------------------------------------------------
 -- Ex 3: a state machine for baking a cake. The type Event represents
@@ -92,10 +102,20 @@ add = todo
 data Event = AddEggs | AddFlour | AddSugar | Mix | Bake
   deriving (Eq,Show)
 
-data State = Start | Error | Finished
+data State = Start | Error | Finished | Egged | Sugared | Floured | Ingrediented | Mixed
   deriving (Eq,Show)
 
-step = todo
+step :: State -> Event -> State
+step Finished _ = Finished
+step Error _ = Error
+step Start AddEggs = Egged
+step Egged AddFlour = Floured
+step Sugared AddFlour = Ingrediented
+step Egged AddSugar = Sugared
+step Floured AddSugar = Ingrediented
+step Ingrediented Mix = Mixed
+step Mixed Bake = Finished
+step _ _ = Error
 
 -- do not edit this
 bake :: [Event] -> State
@@ -114,8 +134,13 @@ bake events = go Start events
 --   average (1.0 :| [])  ==>  1.0
 --   average (1.0 :| [2.0,3.0])  ==>  2.0
 
+-- recall: NonEmpty a = a :| [a]
 average :: Fractional a => NonEmpty a -> a
-average = todo
+average xs = avg xs 0 0
+
+avg :: Fractional a => NonEmpty a -> a -> a -> a
+avg (init :| []) sum len = (sum + init)/(len+1)
+avg (init :| rest) sum len = avg (head rest :| tail rest) (sum+init) (len+1)
 
 ------------------------------------------------------------------------------
 -- Ex 5: reverse a NonEmpty list.
@@ -123,7 +148,11 @@ average = todo
 -- PS. The Data.List.NonEmpty type has been imported for you
 
 reverseNonEmpty :: NonEmpty a -> NonEmpty a
-reverseNonEmpty = todo
+reverseNonEmpty (x :| []) = x :| []
+reverseNonEmpty (x :| xs) = toNonEmpty (reverse xs ++ [x])
+
+toNonEmpty :: [a] -> NonEmpty a
+toNonEmpty (x:xs) = x :| xs
 
 ------------------------------------------------------------------------------
 -- Ex 6: implement Semigroup instances for the Distance, Time and
@@ -135,6 +164,17 @@ reverseNonEmpty = todo
 -- velocity (Distance 50 <> Distance 10) (Time 1 <> Time 2)
 --    ==> Velocity 20
 
+instance Semigroup Distance where
+  (<>) :: Distance -> Distance -> Distance
+  Distance x1 <> Distance x2 = Distance (x1+x2)
+
+instance Semigroup Time where
+  (<>) :: Time -> Time -> Time
+  Time t1 <> Time t2 = Time (t1+t2)
+
+instance Semigroup Velocity where
+  (<>) :: Velocity -> Velocity -> Velocity
+  Velocity v1 <> Velocity v2 = Velocity (v1+v2)
 
 ------------------------------------------------------------------------------
 -- Ex 7: implement a Monoid instance for the Set type from exercise 2.
@@ -144,6 +184,14 @@ reverseNonEmpty = todo
 --
 -- What are the class constraints for the instances?
 
+-- recall data Set a = Set [a] deriving (Show, Eq)
+instance (Eq a, Ord a) => Semigroup (Set a) where
+  (<>) :: Set a -> Set a -> Set a
+  Set a1 <> Set a2 = Set (sort (a1 `union` a2))
+
+instance (Eq a, Ord a) => Monoid (Set a) where
+  mempty :: Set a
+  mempty = Set []
 
 ------------------------------------------------------------------------------
 -- Ex 8: below you'll find two different ways of representing
@@ -166,29 +214,47 @@ reverseNonEmpty = todo
 
 data Operation1 = Add1 Int Int
                 | Subtract1 Int Int
+                | Multiply1 Int Int
   deriving Show
 
 compute1 :: Operation1 -> Int
 compute1 (Add1 i j) = i+j
 compute1 (Subtract1 i j) = i-j
+compute1 (Multiply1 i j) = i*j
 
 show1 :: Operation1 -> String
-show1 = todo
+show1 (Add1 i j)= show i ++ "+" ++ show j
+show1 (Subtract1 i j)= show i ++ "-" ++ show j
+show1 (Multiply1 i j)= show i ++ "*" ++ show j
 
 data Add2 = Add2 Int Int
   deriving Show
 data Subtract2 = Subtract2 Int Int
   deriving Show
+data Multiply2 = Multiply2 Int Int
+  deriving Show
 
 class Operation2 op where
   compute2 :: op -> Int
+  show2 :: op -> String
 
 instance Operation2 Add2 where
+  compute2 :: Add2 -> Int
   compute2 (Add2 i j) = i+j
+  show2 :: Add2 -> String
+  show2 (Add2 i j) = show i ++ "+" ++ show j
 
 instance Operation2 Subtract2 where
+  compute2 :: Subtract2 -> Int
   compute2 (Subtract2 i j) = i-j
+  show2 :: Subtract2 -> String
+  show2 (Subtract2 i j) = show i ++ "-" ++ show j
 
+instance Operation2 Multiply2 where
+  compute2 :: Multiply2 -> Int
+  compute2 (Multiply2 i j) = i*j
+  show2 :: Multiply2 -> String
+  show2 (Multiply2 i j) = show i ++ "*" ++ show j
 
 ------------------------------------------------------------------------------
 -- Ex 9: validating passwords. Below you'll find a type
@@ -217,7 +283,13 @@ data PasswordRequirement =
   deriving Show
 
 passwordAllowed :: String -> PasswordRequirement -> Bool
-passwordAllowed = todo
+passwordAllowed pw (MinimumLength len) = length pw >= len
+passwordAllowed pw (ContainsSome "") = False
+passwordAllowed pw (ContainsSome str) = head str `elem` pw || passwordAllowed pw (ContainsSome (tail str))
+passwordAllowed pw (DoesNotContain "") = True
+passwordAllowed pw (DoesNotContain str) = head str `notElem` pw && passwordAllowed pw (DoesNotContain (tail str))
+passwordAllowed pw (And pr1 pr2) = passwordAllowed pw pr1 && passwordAllowed pw pr2
+passwordAllowed pw (Or pr1 pr2) = passwordAllowed pw pr1 || passwordAllowed pw pr2
 
 ------------------------------------------------------------------------------
 -- Ex 10: a DSL for simple arithmetic expressions with addition and
@@ -239,17 +311,20 @@ passwordAllowed = todo
 --     ==> "(3*(1+1))"
 --
 
-data Arithmetic = Todo
+data Arithmetic = Const Integer | Operation String Arithmetic Arithmetic
   deriving Show
 
 literal :: Integer -> Arithmetic
-literal = todo
+literal = Const
 
 operation :: String -> Arithmetic -> Arithmetic -> Arithmetic
-operation = todo
+operation = Operation
 
 evaluate :: Arithmetic -> Integer
-evaluate = todo
+evaluate (Const x) = x
+evaluate (Operation "+" a1 a2) = evaluate a1 + evaluate a2
+evaluate (Operation "*" a1 a2) = evaluate a1 * evaluate a2
 
 render :: Arithmetic -> String
-render = todo
+render (Const x) = show x
+render (Operation op a1 a2) = "(" ++ render a1 ++ op ++ render a2 ++ ")"
