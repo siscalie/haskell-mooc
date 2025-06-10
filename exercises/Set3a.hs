@@ -14,6 +14,8 @@ import Data.Either
 import Data.List
 
 -- Sophie Lama
+-- University of Notre Dame
+-- Class of 2026
 -- Set 3a Haskell Exercises
 
 ------------------------------------------------------------------------------
@@ -270,23 +272,17 @@ multiCompose fs x = multiCompose (init fs) (last fs x)
 --       ==> ["This is a test","tset a si sihT","his is a test"]
 --   multiApp id  [(1+), (^3), (+2)] 1  ==>  [2,1,3]
 --   multiApp sum [(1+), (^3), (+2)] 1  ==>  6
+--      aka sum [1+1, 1^3, 1+2] aka sum [2, 1, 3] so we get 6
 --   multiApp reverse [tail, take 2, reverse] "foo" ==> ["oof","fo","oo"]
 --   multiApp concat [take 3, reverse] "race" ==> "racecar"
 --   multiApp id [head, (!!2), last] "axbxc" ==> ['a','b','c'] i.e. "abc"
 --   multiApp sum [head, (!!2), last] [1,9,2,9,3] ==> 6
 
-{-
-multiApp :: ([a] -> a) -> [a -> a] -> a -> a
-multiApp f gs x = f (multiAppHelper gs x [])
-    where multiAppHelper :: [a -> a] -> a -> [a] -> [a]
-          multiAppHelper [] x soln = soln
-          multiAppHelper (g:g_rest) x soln = multiAppHelper g_rest x (append (g x) soln)
-            where append y [] = [y]
-                  append y (x: xs) = x : append y xs
--- like if gs = [(1+), (^3), (+2)] and x = 1, it'll give us [2, 1, 3] as the list of results
--}
-multiApp :: ([a] -> a) -> [a -> a] -> a -> a
-multiApp f gs x = todo
+multiApp :: ([b] -> c) -> [a -> b] -> a -> c
+multiApp f gs x = f (makeList gs x)
+    where makeList :: [a -> b] -> a -> [b]
+          makeList [] x = []
+          makeList (g:gs) x = g x : makeList gs x
 
 ------------------------------------------------------------------------------
 -- Ex 14: in this exercise you get to implement an interpreter for a
@@ -321,4 +317,13 @@ multiApp f gs x = todo
 -- function, the surprise won't work. See section 3.8 in the material.
 
 interpreter :: [String] -> [String]
-interpreter commands = todo
+interpreter commands = interpret commands 0 0 []
+
+interpret :: [String] -> Int -> Int -> [String] -> [String]
+interpret [] x y output = output
+interpret ("up":cs) x y output = interpret cs x (y+1) output
+interpret ("down":cs) x y output = interpret cs x (y-1) output
+interpret ("left":cs) x y output = interpret cs (x-1) y output
+interpret ("right":cs) x y output = interpret cs (x+1) y output
+interpret ("printX":cs) x y output = interpret cs x y (output ++ [show x])
+interpret ("printY":cs) x y output = interpret cs x y (output ++ [show y])
