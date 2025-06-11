@@ -196,12 +196,15 @@ toggle (Decreasing count) = Increasing count
 -- rgb Blue  ==> [0,0,1]
 --
 -- rgb (Mix Red Green)                    ==> [0.5,0.5,0]
--- [1 0 0] + [0 1 0] = [1 1 0] then normalize [0.5 0.5 0]
+-- aka Mix [1 0 0] with [0 1 0]   to get [1/2 1/2 0/2]
+
 -- rgb (Mix Red (Mix Red Green))          ==> [0.75,0.25,0]
--- [1 0 0] + [0.5 0.5 0] = [1.5 0.5 0] then normalize [0.75 0.25 0]
+-- aka Mix [1 0 0] with [0.5 0.5 0]   to get [1.5 0.5 0] aka [3/4 1/4 0/4]
+
 -- rgb (Invert Red)                       ==> [0,1,1]
 -- rgb (Invert (Mix Red (Mix Red Green))) ==> [0.25,0.75,1]
 -- rgb (Mix (Invert Red) (Invert Green))  ==> [0.5,0.5,1]
+-- aka Mix [0 1 1] with [1 0 1]     to get [1/2 1/2 2/2]
 
 data Color = Red | Green | Blue | Mix Color Color | Invert Color
   deriving Show
@@ -210,12 +213,10 @@ rgb :: Color -> [Double]
 rgb Red = [1,0,0]
 rgb Green = [0,1,0]
 rgb Blue = [0,0,1]
-rgb (Mix c1 c2) = mixColors (rgb c1) (rgb c2)
 rgb (Invert c) = map (1 -) (rgb c)
-
-mixColors :: [Double] -> [Double] -> [Double]
-mixColors [r1, g1, b1] [r2, g2, b2] = map (/ count) [r1+r2, g1+g2, b1+b2] where count = r1+r2+g1+g2+b1+b2
-
+rgb (Mix c1 c2) = let [r1, g1, b1] = rgb c1 in
+  let [r2, g2, b2] = rgb c2 in
+    map (/2) [r1+r2, g1+g2, b1+b2]
 
 ------------------------------------------------------------------------------
 -- Ex 9: define a parameterized datatype OneOrTwo that contains one or
@@ -346,11 +347,15 @@ prettyPrint (O rest) = prettyPrint rest ++ "0"
 prettyPrint (I rest) = prettyPrint rest ++ "1"
 
 fromBin :: Bin -> Int
-fromBin bin = todo
+fromBin b = fromBin' b (O End) 0
+  where fromBin' :: Bin -> Bin -> Int -> Int
+        fromBin' b currBin currNum = if currBin == b
+          then currNum
+          else fromBin' b (inc currBin) (currNum+1)
 
 toBin :: Int -> Bin
-toBin 0 = O End
-toBin num = toBin' num (O End)
-
-toBin' :: Int -> Bin -> Bin
-toBin' num binary = if fromBin binary == num then binary else toBin' num (inc binary)
+toBin num = toBin' num 0 (O End)
+  where toBin' :: Int -> Int -> Bin -> Bin
+        toBin' num currNum currBin = if num == currNum
+          then currBin
+          else toBin' num (currNum+1) (inc currBin)
