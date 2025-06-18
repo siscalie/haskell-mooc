@@ -11,6 +11,10 @@ module Set10b where
 import Mooc.VeryLimitedPrelude
 import Mooc.Todo
 
+-- Sophie Lama
+-- University of Notre Dame
+-- Class of 2026
+
 ------------------------------------------------------------------------------
 -- Ex 1: Define the operator ||| that works like ||, but forces its
 -- _right_ argument instead of the left one.
@@ -22,7 +26,7 @@ import Mooc.Todo
 --   False ||| undefined ==> an error!
 
 (|||) :: Bool -> Bool -> Bool
-x ||| y = todo
+x ||| y = if y then y else x
 
 ------------------------------------------------------------------------------
 -- Ex 2: Define the function boolLength, that returns the length of a
@@ -36,7 +40,9 @@ x ||| y = todo
 --   length [False,undefined] ==> 2
 
 boolLength :: [Bool] -> Int
-boolLength xs = todo
+boolLength [] = 0
+boolLength (True:xs) = 1 + boolLength xs
+boolLength (False:xs) = 1 + boolLength xs
 
 ------------------------------------------------------------------------------
 -- Ex 3: Define the function validate which, given a predicate and a
@@ -50,7 +56,7 @@ boolLength xs = todo
 --   validate (\x -> undefined) 3  ==>  an error!
 
 validate :: (a -> Bool) -> a -> a
-validate predicate value = todo
+validate predicate value = if predicate value then value else value
 
 ------------------------------------------------------------------------------
 -- Ex 4: Even though we can't implement the generic seq function
@@ -84,10 +90,13 @@ class MySeq a where
   myseq :: a -> b -> b
 
 instance MySeq Bool where
-  myseq = todo
+  myseq True val = val
+  myseq False val = val
 
 instance MySeq Int where
-  myseq = todo
+  myseq 0 val = val
+  myseq i val = val
 
 instance MySeq [a] where
-  myseq = todo
+  myseq [] val = val
+  myseq (x:xs) val = val
