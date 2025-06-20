@@ -1,3 +1,4 @@
+{-# LANGUAGE InstanceSigs #-}
 module Set12 where
 
 import Data.Functor
@@ -7,6 +8,9 @@ import Data.Monoid
 
 import Mooc.Todo
 
+-- Sophie Lama
+-- University of Notre Dame
+-- Class of 2026
 
 ------------------------------------------------------------------------------
 -- Ex 1: Implement the function incrementAll that takes a functor
@@ -17,7 +21,7 @@ import Mooc.Todo
 --   incrementAll (Just 3.0)  ==>  Just 4.0
 
 incrementAll :: (Functor f, Num n) => f n -> f n
-incrementAll x = todo
+incrementAll input = fmap (+1) input
 
 ------------------------------------------------------------------------------
 -- Ex 2: Sometimes one wants to fmap multiple levels deep. Implement
@@ -38,7 +42,7 @@ incrementAll x = todo
 --       ==> Just [Just True,Nothing]
 
 fmap2 :: (Functor f, Functor g) => (a -> b) -> f (g a) -> f (g b)
-fmap2 = todo
+fmap2 func1 input = todo
 
 fmap3 :: (Functor f, Functor g, Functor h) => (a -> b) -> f (g (h a)) -> f (g (h b))
 fmap3 = todo
@@ -54,7 +58,9 @@ data Result a = MkResult a | NoResult | Failure String
   deriving Show
 
 instance Functor Result where
-  fmap f result = todo
+  fmap f (MkResult a) = MkResult (f a)
+  fmap f NoResult = NoResult
+  fmap f (Failure str) = Failure str
 
 ------------------------------------------------------------------------------
 -- Ex 4: Here's a reimplementation of the Haskell list type. You might
@@ -68,6 +74,8 @@ data List a = Empty | LNode a (List a)
   deriving Show
 
 instance Functor List where
+  fmap f Empty = Empty
+  fmap f (LNode a xs) = LNode (f a) (fmap f xs)
 
 ------------------------------------------------------------------------------
 -- Ex 5: Here's another list type. This time every node contains two
@@ -82,6 +90,8 @@ data TwoList a = TwoEmpty | TwoNode a a (TwoList a)
   deriving Show
 
 instance Functor TwoList where
+  fmap f TwoEmpty = TwoEmpty
+  fmap f (TwoNode x y zs) = TwoNode (f x) (f y) (fmap f zs)
 
 ------------------------------------------------------------------------------
 -- Ex 6: Count all occurrences of a given element inside a Foldable.
@@ -94,7 +104,7 @@ instance Functor TwoList where
 --   count 'c' (Just 'c') ==> 1
 
 count :: (Eq a, Foldable f) => a -> f a -> Int
-count = todo
+count val foldable = foldr (\x sum -> if val == x then sum+1 else sum) 0 foldable
 
 ------------------------------------------------------------------------------
 -- Ex 7: Return all elements that are in two Foldables, as a list.
@@ -105,7 +115,7 @@ count = todo
 --   inBoth Nothing [3]    ==> []
 
 inBoth :: (Foldable f, Foldable g, Eq a) => f a -> g a -> [a]
-inBoth = todo
+inBoth f1 f2 = foldr (\x tally -> if elem x f1 then tally++[x] else tally) [] f2
 
 ------------------------------------------------------------------------------
 -- Ex 8: Implement the instance Foldable List.
@@ -117,8 +127,14 @@ inBoth = todo
 --   sum (LNode 1 (LNode 2 (LNode 3 Empty)))    ==> 6
 --   length (LNode 1 (LNode 2 (LNode 3 Empty))) ==> 3
 
+-- recall
+-- data List a = Empty | LNode a (List a)
+-- deriving Show
+
 instance Foldable List where
-  foldr = todo
+  foldr :: (a -> b -> b) -> b -> List a -> b
+  foldr func n Empty = n
+  foldr func n (LNode x ys) = foldr func (func x n) ys
 
 ------------------------------------------------------------------------------
 -- Ex 9: Implement the instance Foldable TwoList.
@@ -127,8 +143,13 @@ instance Foldable List where
 --   sum (TwoNode 0 1 (TwoNode 2 3 TwoEmpty))    ==> 6
 --   length (TwoNode 0 1 (TwoNode 2 3 TwoEmpty)) ==> 4
 
+-- data TwoList a = TwoEmpty | TwoNode a a (TwoList a)
+--   deriving Show
+
 instance Foldable TwoList where
-  foldr = todo
+  foldr :: (a -> b -> b) -> b -> TwoList a -> b
+  foldr func n TwoEmpty = n
+  foldr func n (TwoNode x y zs) = foldr func (func y (func x n)) zs
 
 ------------------------------------------------------------------------------
 -- Ex 10: (Tricky!) Fun a is a type that wraps a function Int -> a.
@@ -138,11 +159,15 @@ instance Foldable TwoList where
 -- puzzle.
 
 data Fun a = Fun (Int -> a)
+-- Fun f, f is a function (Int -> a) that turns an Int into an a
 
 runFun :: Fun a -> Int -> a
 runFun (Fun f) x = f x
 
+-- here we want f to turn fun into an Int -> b kind of function
 instance Functor Fun where
+  fmap :: (a -> b) -> Fun a -> Fun b
+  fmap f (Fun f2) = todo
 
 ------------------------------------------------------------------------------
 -- Ex 11: (Tricky!) You'll find the binary tree type from Set 5b
@@ -199,12 +224,16 @@ data Tree a = Leaf | Node a (Tree a) (Tree a)
   deriving Show
 
 instance Functor Tree where
-  fmap = todo
+  fmap :: (a -> b) -> Tree a -> Tree b
+  fmap func Leaf = Leaf
+  fmap func (Node a t1 t2) = Node (func a) (fmap func t1) (fmap func t2)
 
 sumTree :: Monoid m => Tree m -> m
-sumTree = todo
+sumTree Leaf = todo
+sumTree (Node a t1 t2) = a
 
 instance Foldable Tree where
+  foldMap :: Monoid m => (a -> m) -> Tree a -> m
   foldMap f t = sumTree (fmap f t)
 
 ------------------------------------------------------------------------------
